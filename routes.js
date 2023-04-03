@@ -3,31 +3,31 @@ const route = express.Router();
 const users = require("./models/users");
 const products = require('./models/products');
 const jwt = require("jsonwebtoken");
+var tempUser = '';
 
-route.get('/', async (req, res) => {
-    const _users = await users.find();
-    console.log("dsf",users)
-    res.send(_users)
-});
+// route.get('/', async (req, res) => {
+//     const _users = await users.find();
+//     console.log("dsf",users)
+//     res.send(_users)
+// });
 // route.get("/:id", (req, res) =>{
 //  res.send("id is"+req.params.id)
 // })
-route.post('/', (req, res) => {
-    res.send("Post route called")
-})
+
 
 
 //JWT Authentication Middleware
 const jwtTokenAuthentication = (req, res, next) => {
     const authHeader = req.headers.authorization;
-
     if(authHeader){
         jwt.verify(authHeader, "secretkeyappearshere", (err, user) => {
-       if(err){
+            // console.log(user, "ewrwerwe")
+       if(err){ 
         res.status(403)
         return res.send("Invalid token!");
        }else{
         res.user = user;
+        // res.send(user)
         next();
        }
         })
@@ -36,6 +36,43 @@ const jwtTokenAuthentication = (req, res, next) => {
         res.send("User not found!")
     }
 }
+const jwtTokenAuthenticationCommon = (req, res, next) => {
+    const authHeader = req.headers.authorization;
+    if(authHeader){
+        jwt.verify(authHeader, "secretkeyappearshere", (err, user) => {
+            // console.log(user, "ewrwerwe")
+       if(err){ 
+        res.status(403)
+        return res.send("Invalid token!");
+       }else{
+        res.user = user;
+        res.send(user)
+        next();
+       }
+        })
+    }else{
+        res.status(401);
+        res.send("User not found!")
+    }
+}
+
+
+
+route.get('/', jwtTokenAuthentication, (req, res) => {
+    res.send("Post route called")
+})
+
+
+//Login with token
+route.get('/common', jwtTokenAuthenticationCommon, (req, res) => {
+    try{
+        res.status(200)
+    res.send("Logged in with token.")
+}catch{
+    res.status(403)
+    res.send("Failed to login with token.")
+}
+})
 
 
 //Login API
@@ -48,7 +85,7 @@ route.post('/login', async (req, res) => {
         token = jwt.sign(
             { email: _data.email },
             "secretkeyappearshere",
-            { expiresIn: 200 }
+            { expiresIn: '1h' }
           );
         } catch (err) {
           console.log(err);
@@ -98,7 +135,6 @@ route.get('/products', jwtTokenAuthentication, async (req, res) => {
         res.send(_products);
         
     }catch{
-        res.status(404)
         res.send("Server error!");
     }
 })
