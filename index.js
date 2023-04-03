@@ -9,7 +9,7 @@ const cors = require('cors');
 //     res.send("Hellow world");
 // });
 
-//All Routes Linking   
+//All Routes Linking    
 var corsOptions = {
     origin: "http://localhost:3000"
   };
